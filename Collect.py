@@ -32,4 +32,5 @@ def extract(file):
     decompressed_file = open(base_export_dir+os.path.basename(file)[:-3], "wb")
     decompressed_file.write(decompressed_data)
     decompressed_file.close()
+
     return base_export_dir+os.path.basename(file)[:-3]

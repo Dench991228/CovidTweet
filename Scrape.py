@@ -8,7 +8,6 @@ def try_tweet_by_id_scrap(twitter_id):
     :return: 整个推特返回回来
     '''
     id_task = st.TweetsByIdTask(twitter_id)
-    output_json = st.JsonLineFileRawOutput('twitter.jl')
-    output_print = st.PrintRawOutput()
-    st.TweetsByIdRunner(tweets_by_id_task=id_task,
-                        raw_data_outputs=[output_print, output_json]).run()
+    output_json = st.JsonLineFileRawOutput('twitter3.jl')
+    result = st.TweetsByIdRunner(tweets_by_id_task=id_task, raw_data_outputs=[output_json]).run()
+    return result
