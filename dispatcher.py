@@ -26,6 +26,12 @@ def get_date_str(y, m, d):
 
 if __name__ == '__main__':
     args = parse.parse_args()
+    # 日期字符串
+    date_str = get_date_str(args.year, args.month, args.day)
+    # 获取日志
+    lg = logging.getLogger(f"dispatcher-{date_str}")
+    logging.basicConfig(filename=f"./logs/{date_str}.txt", filemode='a', level=logging.DEBUG,
+                        format="%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s")
     print("Downloading index file from github")
     gz = get_original_data(args.year, args.month, args.day)
     print("Extracting file")
@@ -36,11 +42,6 @@ if __name__ == '__main__':
     # 检查sources文件夹建立没有
     if not os.path.exists("./sources"):
         os.mkdir("./sources")
-    # 日期字符串
-    date_str = get_date_str(args.year, args.month, args.day)
-    # 获取日志
-    lg = logging.getLogger(f"dispatcher-{date_str}")
-    logging.basicConfig(filename=f"./logs/{date_str}.txt", filemode='a', level=logging.DEBUG)
     # 目标目录
     data_dir = args.save
     # 创建redis连接
@@ -62,9 +63,12 @@ if __name__ == '__main__':
                     "save_dir": str(os.path.join(args.save, date_str+".txt"))
                 }
                 # 将目标工作插入到待完成的列表中
-                tasks.append(task)
+                tasks.append(json.dumps(task))
                 length += 1
-        l = client.lock("id_scrape_tasks")
-        client.rpush("id_scrape_tasks", tasks)
-        l.release()
+        lg.log(logging.DEBUG, f"Statistic finished, ready to upload tasks")
+        # 设置这一项任务的数量
+        client.set(f"{date_str}", length)
+        # 将这一项任务的内容加上去
+        for item in tasks:
+            client.rpush("id_scrape_tasks", item)
         lg.log(logging.DEBUG, f"There are {length} tweets in {args.year}-{args.month}-{args.day} to be scraped")

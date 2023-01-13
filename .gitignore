@@ -5,3 +5,6 @@ logs/
 .idea
 __pycache__/
 *.jl
+.gitignore
+temp.py
+nohup.out

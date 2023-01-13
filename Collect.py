@@ -16,8 +16,11 @@ def get_original_data(year, month, day):
     month_str = "0"+str(month) if month < 10 else str(month)
     day_str = "0"+str(day) if day < 10 else str(day)
     target_url = base_str + f"{year}-{month_str}-{day_str}/{year}-{month_str}-{day_str}_clean-dataset.tsv.gz"
-    gz, message = rq.urlretrieve(target_url, base_export_dir+f"{year}-{month_str}-{day_str}.tsv.gz")
-    return gz
+    if os.path.exists(target_url):
+        return target_url, None
+    else:
+        gz, message = rq.urlretrieve(target_url, base_export_dir+f"{year}-{month_str}-{day_str}.tsv.gz")
+        return gz
 
 
 def extract(file):
@@ -29,8 +32,11 @@ def extract(file):
     data_file = open(file, 'rb')
     data = data_file.read()
     decompressed_data = gzip.decompress(data)
-    decompressed_file = open(base_export_dir+os.path.basename(file)[:-3], "wb")
-    decompressed_file.write(decompressed_data)
-    decompressed_file.close()
+    if os.path.exists(base_export_dir+os.path.basename(file)[:-3]):
+        return base_export_dir+os.path.basename(file)[:-3]
+    else:
+        decompressed_file = open(base_export_dir+os.path.basename(file)[:-3], "wb")
+        decompressed_file.write(decompressed_data)
+        decompressed_file.close()
 
-    return base_export_dir+os.path.basename(file)[:-3]
+        return base_export_dir+os.path.basename(file)[:-3]
