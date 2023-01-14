@@ -36,7 +36,7 @@ if __name__ == '__main__':
                 lg.log(logging.DEBUG, f"Successfully scraped {task['id']} in day {task['date_str']}")
             except Exception as ex:
                 lg.log(logging.WARN, f"An error has took place{ex}")
-                client.rpush("id_scrape_task", json.dumps(task))
+                client.rpush("id_scrape_tasks", json.dumps(task))
                 count += 1
                 client.set(task['date_str'], count)
                 time.sleep(60)
