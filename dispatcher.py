@@ -54,17 +54,16 @@ if __name__ == '__main__':
         tasks = []
         for line in reader:
             twitter_id = line[0]
-            language = line[3]
-            if language == 'en':
-                # 被插入的工作
-                task = {
-                    "id": twitter_id,
-                    "date_str": date_str,
-                    "save_dir": str(os.path.join(args.save, date_str+".txt"))
-                }
-                # 将目标工作插入到待完成的列表中
-                tasks.append(json.dumps(task))
-                length += 1
+            # language = line[3]
+            # 被插入的工作
+            task = {
+                "id": twitter_id,
+                "date_str": date_str,
+                "save_dir": str(os.path.join(args.save, date_str+".txt"))
+            }
+            # 将目标工作插入到待完成的列表中
+            tasks.append(json.dumps(task))
+            length += 1
         lg.log(logging.DEBUG, f"Statistic finished, ready to upload tasks")
         # 设置这一项任务的数量
         client.set(f"{date_str}", length)

@@ -33,7 +33,7 @@ if __name__ == '__main__':
                 f.close()
             try:
                 try_tweet_by_id_scrap(task['id'], task['save_dir'])
-                lg.log(logging.DEBUG, f"Successfully scraped {task['id']} in day {task['date_str']}")
+                lg.log(logging.DEBUG, f"Successfully scraped {task['id']} in day {task['date_str']}, {count} tweets remaining")
             except Exception as ex:
                 lg.log(logging.WARN, f"An error has took place{ex}")
                 client.rpush("id_scrape_tasks", json.dumps(task))
