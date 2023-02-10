@@ -34,9 +34,13 @@ if __name__ == '__main__':
             lg.log(logging.DEBUG, f"No job to do, sleeping")
             time.sleep(30)
         else:
+            while not client.setnx('lock', 1):  # 获取互斥的锁
+                pass
+            client.expire('lock', 20)  # 20秒之内必定放开
             task = json.loads(client.lpop("id_scrape_tasks"))
             count = int(client.get(task['date_str'])) - 1
             client.set(task['date_str'], count)
+            client.delete('lock')  # 把锁放开
             if not os.path.exists(task['save_dir']):
                 lg.log(logging.INFO,
                        f"file {os.path.join(task['save_dir'], task['date_str']) + '.jl'} doesn't exist, creating")
@@ -45,18 +49,26 @@ if __name__ == '__main__':
             try:
                 t = Scrape(task)
                 t.start()
-                t.join(2)
+                t.join(10)
                 if not t.is_alive():
                     lg.log(logging.INFO,
                        f"Successfully scraped {task['id']} in day {task['date_str']}, {count} tweets remaining")
                 else:
                     lg.log(logging.INFO, f"unsuccessful scrape on twitter id: {task['id']}, abort")
+                    while not client.setnx('lock', 1):
+                        pass
+                    client.expire('lock', 20)
                     client.rpush("id_scrape_tasks", json.dumps(task))
                     count += 1
                     client.set(task['date_str'], count)
+                    client.delete('lock')
             except Exception as ex:
                 lg.log(logging.WARN, f"An error has took place{ex}, when scraping {task['id']}")
+                while client.setnx('lock', 1):
+                    pass
+                client.expire('lock', 20)
                 client.rpush("id_scrape_tasks", json.dumps(task))
                 count += 1
                 client.set(task['date_str'], count)
                 time.sleep(5)
+                client.delete('lock')
