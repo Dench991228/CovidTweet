@@ -6,6 +6,17 @@ import redis as redis
 import logging
 from Scrape import try_tweet_by_id_scrap
 import json
+import threading
+
+
+class Scrape(threading.Thread):
+    def __init__(self, task):
+        super().__init__()
+        self.task = task
+
+    def run(self) -> None:
+        try_tweet_by_id_scrap(task['id'], task['save_dir'])
+
 
 if __name__ == '__main__':
     # 检查日志文件夹建立没有
@@ -32,8 +43,17 @@ if __name__ == '__main__':
                 f = open(task['save_dir'], 'w')
                 f.close()
             try:
-                try_tweet_by_id_scrap(task['id'], task['save_dir'])
-                lg.log(logging.INFO, f"Successfully scraped {task['id']} in day {task['date_str']}, {count} tweets remaining")
+                t = Scrape(task)
+                t.start()
+                t.join(2)
+                if not t.isAlive():
+                    lg.log(logging.INFO,
+                       f"Successfully scraped {task['id']} in day {task['date_str']}, {count} tweets remaining")
+                else:
+                    lg.log(logging.INFO, f"unsuccessful scrape on twitter id: {task['id']}, abort")
+                    client.rpush("id_scrape_tasks", json.dumps(task))
+                    count += 1
+                    client.set(task['date_str'], count)
             except Exception as ex:
                 lg.log(logging.WARN, f"An error has took place{ex}, when scraping {task['id']}")
                 client.rpush("id_scrape_tasks", json.dumps(task))
