@@ -10,12 +10,13 @@ import threading
 
 
 class Scrape(threading.Thread):
-    def __init__(self, task):
+    def __init__(self, task, creator):
         super().__init__()
         self.task = task
+        self.creator = creator
 
     def run(self) -> None:
-        try_tweet_by_id_scrap(task['id'], f"{task['save_dir']}-{threading.current_thread().name}")
+        try_tweet_by_id_scrap(task['id'], f"{task['save_dir']}-{self.creator}")
 
 
 if __name__ == '__main__':
@@ -41,13 +42,14 @@ if __name__ == '__main__':
             count = int(client.get(task['date_str'])) - 1
             client.set(task['date_str'], count)
             client.delete('lock')  # 把锁放开
+            # 检查输出的地方有没有
             if not os.path.exists(task['save_dir']):
                 lg.log(logging.INFO,
-                       f"file {os.path.join(task['save_dir'], task['date_str']) + '.jl'} doesn't exist, creating")
+                       f"file {task['save_dir']} doesn't exist, creating")
                 f = open(f"{task['save_dir']}-{threading.current_thread().name}", 'w')
                 f.close()
             try:
-                t = Scrape(task)
+                t = Scrape(task, threading.current_thread().name)
                 t.start()
                 t.join(10)
                 if not t.is_alive():
