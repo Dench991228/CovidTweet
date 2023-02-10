@@ -15,7 +15,7 @@ class Scrape(threading.Thread):
         self.task = task
 
     def run(self) -> None:
-        try_tweet_by_id_scrap(task['id'], task['save_dir'])
+        try_tweet_by_id_scrap(task['id'], f"{task['save_dir']}-{threading.current_thread().name}")
 
 
 if __name__ == '__main__':
@@ -24,7 +24,7 @@ if __name__ == '__main__':
         os.mkdir("./logs")
     # 设置日志相关内容
     lg = logging.getLogger(f"runner")
-    logging.basicConfig(filename=f"./logs/runner.txt", filemode='a', level=logging.INFO,
+    logging.basicConfig(filename=f"./logs/runner-{threading.current_thread().name}.txt", filemode='a', level=logging.INFO,
                         format="%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s")
     # 获取redis客户端
     client = redis.Redis(host=os.environ.get("MYSERVER"), port=6379, password=os.environ.get("REDISCLI_AUTH"))
@@ -44,7 +44,7 @@ if __name__ == '__main__':
             if not os.path.exists(task['save_dir']):
                 lg.log(logging.INFO,
                        f"file {os.path.join(task['save_dir'], task['date_str']) + '.jl'} doesn't exist, creating")
-                f = open(task['save_dir'], 'w')
+                f = open(f"{task['save_dir']}-{threading.current_thread().name}", 'w')
                 f.close()
             try:
                 t = Scrape(task)
