@@ -46,7 +46,7 @@ if __name__ == '__main__':
                 t = Scrape(task)
                 t.start()
                 t.join(2)
-                if not t.isAlive():
+                if not t.is_alive():
                     lg.log(logging.INFO,
                        f"Successfully scraped {task['id']} in day {task['date_str']}, {count} tweets remaining")
                 else:
