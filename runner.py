@@ -61,7 +61,7 @@ if __name__ == '__main__':
                         pass
                     client.expire('lock', 20)
                     client.rpush("id_scrape_tasks", json.dumps(task))
-                    count += 1
+                    count = int(client.get(task['date_str'])) + 1
                     client.set(task['date_str'], count)
                     client.delete('lock')
             except Exception as ex:
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                     pass
                 client.expire('lock', 20)
                 client.rpush("id_scrape_tasks", json.dumps(task))
-                count += 1
+                count = int(client.get(task['date_str'])) + 1
                 client.set(task['date_str'], count)
                 time.sleep(5)
                 client.delete('lock')
