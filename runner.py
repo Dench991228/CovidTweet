@@ -43,7 +43,7 @@ if __name__ == '__main__':
             client.set(task['date_str'], count)
             client.delete('lock')  # 把锁放开
             # 检查输出的地方有没有
-            if not os.path.exists(task['save_dir']):
+            if not os.path.exists(f"task['save_dir']-{threading.current_thread().name}"):
                 lg.log(logging.INFO,
                        f"file {task['save_dir']} doesn't exist, creating")
                 f = open(f"{task['save_dir']}-{threading.current_thread().name}", 'w')
@@ -51,7 +51,7 @@ if __name__ == '__main__':
             try:
                 t = Scrape(task, threading.current_thread().name)
                 t.start()
-                t.join(10)
+                t.join(60)
                 if not t.is_alive():
                     lg.log(logging.INFO,
                        f"Successfully scraped {task['id']} in day {task['date_str']}, {count} tweets remaining")
@@ -66,7 +66,7 @@ if __name__ == '__main__':
                     client.delete('lock')
             except Exception as ex:
                 lg.log(logging.WARN, f"An error has took place{ex}, when scraping {task['id']}")
-                while client.setnx('lock', 1):
+                while not client.setnx('lock', 1):
                     pass
                 client.expire('lock', 20)
                 client.rpush("id_scrape_tasks", json.dumps(task))
