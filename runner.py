@@ -43,7 +43,7 @@ if __name__ == '__main__':
             client.set(task['date_str'], count)
             client.delete('lock')  # 把锁放开
             # 检查输出的地方有没有
-            if not os.path.exists(f"task['save_dir']-{threading.current_thread().name}"):
+            if not os.path.exists(f"{task['save_dir']}-{threading.current_thread().name}"):
                 lg.log(logging.INFO,
                        f"file {task['save_dir']} doesn't exist, creating")
                 f = open(f"{task['save_dir']}-{threading.current_thread().name}", 'w')
